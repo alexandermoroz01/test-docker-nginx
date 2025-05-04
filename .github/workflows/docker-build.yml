@@ -19,3 +19,11 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t static-html-nginx .
+
+      - name: Run container
+        run: docker run -d -p 8080:80 --name test-app test-app
+
+      - name: Wait and test HTTP response
+        run: |
+          sleep 2
+          curl -f http://localhost:8080 | grep "Hello world from nginx12312"
