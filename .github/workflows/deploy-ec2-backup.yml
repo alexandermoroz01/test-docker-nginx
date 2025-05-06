@@ -19,37 +19,37 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-north-1
 
-      # - name: Delete previous snapshot
+      - name: Delete previous snapshot
+        run: |
+          SNAPSHOT_ID=$(aws ec2 describe-snapshots \
+            --filters "Name=tag:Name,Values=ec2-backup" \
+            --owner-ids self \
+            --query "Snapshots[0].SnapshotId" \
+            --output text)
+
+          if [ "$SNAPSHOT_ID" != "None" ]; then
+            echo "Deleting old snapshot: $SNAPSHOT_ID"
+            aws ec2 delete-snapshot --snapshot-id $SNAPSHOT_ID
+          else
+            echo "No old snapshot found."
+          fi
+
+      # - name: Create EBS snapshot
       #   run: |
-      #     SNAPSHOT_ID=$(aws ec2 describe-snapshots \
-      #       --filters "Name=tag:Name,Values=ec2-backup" \
-      #       --owner-ids self \
-      #       --query "Snapshots[0].SnapshotId" \
+      #     INSTANCE_ID=$(aws ec2 describe-instances \
+      #       --filters "Name=ip-address,Values=${{ secrets.EC2_PUBLIC_IP }}" \
+      #       --query "Reservations[0].Instances[0].InstanceId" \
       #       --output text)
 
-      #     if [ "$SNAPSHOT_ID" != "None" ]; then
-      #       echo "Deleting old snapshot: $SNAPSHOT_ID"
-      #       aws ec2 delete-snapshot --snapshot-id $SNAPSHOT_ID
-      #     else
-      #       echo "No old snapshot found."
-      #     fi
+      #     VOLUME_ID=$(aws ec2 describe-volumes \
+      #       --filters Name=attachment.instance-id,Values=$INSTANCE_ID \
+      #       --query "Volumes[0].VolumeId" \
+      #       --output text)
 
-      - name: Create EBS snapshot
-        run: |
-          INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters "Name=ip-address,Values=${{ secrets.EC2_PUBLIC_IP }}" \
-            --query "Reservations[0].Instances[0].InstanceId" \
-            --output text)
-
-          VOLUME_ID=$(aws ec2 describe-volumes \
-            --filters Name=attachment.instance-id,Values=$INSTANCE_ID \
-            --query "Volumes[0].VolumeId" \
-            --output text)
-
-          aws ec2 create-snapshot \
-            --volume-id $VOLUME_ID \
-            --description "Snapshot before deploy" \
-            --tag-specifications 'ResourceType=snapshot,Tags=[{Key=Name,Value=ec2-backup}]'
+      #     aws ec2 create-snapshot \
+      #       --volume-id $VOLUME_ID \
+      #       --description "Snapshot before deploy" \
+      #       --tag-specifications 'ResourceType=snapshot,Tags=[{Key=Name,Value=ec2-backup}]'
 
       - name: Install SSH key
         run: |
