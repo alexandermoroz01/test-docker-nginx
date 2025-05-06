@@ -28,5 +28,5 @@ jobs:
             docker stop test-app || true
             docker rm test-app || true
             docker build -t test-app .
-            docker run -d -p 80:80 --name test-app test-app
+            docker run -d -p 80:80 --name test-app --restart unless-stopped test-app
           EOF
