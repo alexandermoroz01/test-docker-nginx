@@ -1,4 +1,4 @@
-name: Deploy to EC2 and create backup
+name: Delete old backup, create new, deploy to EC2
 
 on:
   push:
@@ -34,22 +34,22 @@ jobs:
             echo "No old snapshot found."
           fi
 
-      # - name: Create EBS snapshot
-      #   run: |
-      #     INSTANCE_ID=$(aws ec2 describe-instances \
-      #       --filters "Name=ip-address,Values=${{ secrets.EC2_PUBLIC_IP }}" \
-      #       --query "Reservations[0].Instances[0].InstanceId" \
-      #       --output text)
+      - name: Create EBS snapshot
+        run: |
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=ip-address,Values=${{ secrets.EC2_PUBLIC_IP }}" \
+            --query "Reservations[0].Instances[0].InstanceId" \
+            --output text)
 
-      #     VOLUME_ID=$(aws ec2 describe-volumes \
-      #       --filters Name=attachment.instance-id,Values=$INSTANCE_ID \
-      #       --query "Volumes[0].VolumeId" \
-      #       --output text)
+          VOLUME_ID=$(aws ec2 describe-volumes \
+            --filters Name=attachment.instance-id,Values=$INSTANCE_ID \
+            --query "Volumes[0].VolumeId" \
+            --output text)
 
-      #     aws ec2 create-snapshot \
-      #       --volume-id $VOLUME_ID \
-      #       --description "Snapshot before deploy" \
-      #       --tag-specifications 'ResourceType=snapshot,Tags=[{Key=Name,Value=ec2-backup}]'
+          aws ec2 create-snapshot \
+            --volume-id $VOLUME_ID \
+            --description "Snapshot before deploy" \
+            --tag-specifications 'ResourceType=snapshot,Tags=[{Key=Name,Value=ec2-backup}]'
 
       - name: Install SSH key
         run: |
