@@ -78,7 +78,7 @@ jobs:
           aws ec2 attach-volume \
             --volume-id $NEW_VOLUME_ID \
             --instance-id $INSTANCE_ID \
-            --device /dev/xvda
+            --device /dev/sda1
 
       - name: Start EC2 instance
         run: |
