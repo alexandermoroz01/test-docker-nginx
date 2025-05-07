@@ -49,7 +49,8 @@ jobs:
           NEW_VOLUME_ID=$(aws ec2 create-volume \
             --availability-zone $AZ \
             --snapshot-id $SNAPSHOT_ID \
-            --volume-type gp2 \
+            --size 14 \
+            --volume-type gp3 \
             --query "VolumeId" --output text)
           echo "NEW_VOLUME_ID=$NEW_VOLUME_ID" >> $GITHUB_ENV
 
