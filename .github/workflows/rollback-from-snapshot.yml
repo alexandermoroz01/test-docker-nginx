@@ -1,0 +1,88 @@
+name: Rollback EC2 from Snapshot
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-north-1
+
+      - name: Get Instance ID
+        id: get-instance
+        run: |
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=ip-address,Values=${{ secrets.EC2_PUBLIC_IP }}" \
+            --query "Reservations[0].Instances[0].InstanceId" \
+            --output text)
+          echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_ENV
+
+      - name: Get Snapshot ID
+        id: get-snapshot
+        run: |
+          SNAPSHOT_ID=$(aws ec2 describe-snapshots \
+            --filters "Name=tag:Name,Values=ec2-backup" \
+            --owner-ids self \
+            --query "Snapshots[0].SnapshotId" \
+            --output text)
+          echo "SNAPSHOT_ID=$SNAPSHOT_ID" >> $GITHUB_ENV
+
+      - name: Get Availability Zone
+        id: get-az
+        run: |
+          AZ=$(aws ec2 describe-instances \
+            --instance-ids $INSTANCE_ID \
+            --query "Reservations[0].Instances[0].Placement.AvailabilityZone" \
+            --output text)
+          echo "AZ=$AZ" >> $GITHUB_ENV
+
+      - name: Create volume from snapshot
+        id: create-volume
+        run: |
+          NEW_VOLUME_ID=$(aws ec2 create-volume \
+            --availability-zone $AZ \
+            --snapshot-id $SNAPSHOT_ID \
+            --volume-type gp2 \
+            --query "VolumeId" --output text)
+          echo "NEW_VOLUME_ID=$NEW_VOLUME_ID" >> $GITHUB_ENV
+
+          echo "Waiting for volume to become available..."
+          aws ec2 wait volume-available --volume-ids $NEW_VOLUME_ID
+
+      - name: Stop EC2 instance
+        run: |
+          aws ec2 stop-instances --instance-ids $INSTANCE_ID
+          aws ec2 wait instance-stopped --instance-ids $INSTANCE_ID
+
+      - name: Detach current root volume
+        id: detach
+        run: |
+          OLD_VOLUME_ID=$(aws ec2 describe-volumes \
+            --filters Name=attachment.instance-id,Values=$INSTANCE_ID \
+            --query "Volumes[0].VolumeId" --output text)
+          echo "OLD_VOLUME_ID=$OLD_VOLUME_ID" >> $GITHUB_ENV
+
+          aws ec2 detach-volume --volume-id $OLD_VOLUME_ID
+          aws ec2 wait volume-available --volume-ids $OLD_VOLUME_ID
+
+      - name: Attach new volume as root
+        run: |
+          aws ec2 attach-volume \
+            --volume-id $NEW_VOLUME_ID \
+            --instance-id $INSTANCE_ID \
+            --device /dev/xvda
+
+      - name: Start EC2 instance
+        run: |
+          aws ec2 start-instances --instance-ids $INSTANCE_ID
+
+      - name: (Optional) Delete old volume
+        run: |
+          aws ec2 delete-volume --volume-id $OLD_VOLUME_ID
