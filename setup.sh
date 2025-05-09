@@ -7,6 +7,9 @@ set -x
 apt update -y
 apt install -y docker.io git
 
+sudo usermod -aG docker ubuntu
+newgrp docker
+
 git clone https://github.com/alexandermoroz01/test-docker-nginx.git
 
 sudo systemctl enable docker
