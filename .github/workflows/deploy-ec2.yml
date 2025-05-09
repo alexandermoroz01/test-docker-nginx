@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Deploy to EC2 by EC2_PUBLIC_IP
 
 on:
   # push:

@@ -24,7 +24,7 @@ jobs:
         id: ec2info
         run: |
           PUBLIC_IP=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=test-docker-nginx" \
+            --filters "Name=tag:Name,Values=test-docker-nginx-terraform" \
             --query "Reservations[0].Instances[0].PublicIpAddress" \
             --output text)
 
