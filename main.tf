@@ -1,18 +1,19 @@
 terraform {
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
+      source  = "hashicorp/aws" # Провайдер
+      version = "~> 5.0" # Версія від 5 до 6, але не включаючи 6
     }
   }
 
-  required_version = ">= 1.11.4"
+  required_version = ">= 1.11.4" # Мінімальна версія терраформа
 }
 
 provider "aws" {
   region  = "eu-north-1"
 }
 
+# Створення груп security щоб був доступ до сайту, тд відкриттся портів
 resource "aws_security_group" "allow_ssh_http_https" {
   name        = "allow_ssh_http_https"
   description = "Allow SSH, HTTP, and HTTPS traffic"
