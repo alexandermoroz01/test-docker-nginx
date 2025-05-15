@@ -1,13 +1,22 @@
 [
   {
     "name": "web",
-    "image": "nginx",
+    "image": "ghcr.io/alexandermoroz01/my-app:latest",
     "essential": true,
     "portMappings": [
       {
         "containerPort": 80,
-        "hostPort": 80
+        "hostPort": 80,
+        "protocol": "tcp"
       }
-    ]
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "/ecs/web-task",
+        "awslogs-region": "eu-north-1",
+        "awslogs-stream-prefix": "web"
+      }
+    }
   }
 ]
