@@ -1,9 +1,9 @@
 name: Deploy to ECS
 
 on:
-  push:
-    branches:
-      - main
+  # push:
+  #   branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -27,7 +27,7 @@ jobs:
 
       - name: Push to GitHub Container Registry
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           docker tag my-app ghcr.io/${{ github.repository_owner }}/my-app:latest
           docker push ghcr.io/${{ github.repository_owner }}/my-app:latest
 
