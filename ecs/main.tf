@@ -25,7 +25,7 @@ resource "aws_autoscaling_group" "ecs_asg" {
   desired_capacity     = 1
   max_size             = 1
   min_size             = 1
-  vpc_zone_identifier  = ["subnet-xxxxxx"] # Вкажи свої сабнети
+  vpc_zone_identifier  = [aws_subnet.public_1.id]
   launch_template {
     id      = aws_launch_template.ecs_template.id
     version = "$Latest"
