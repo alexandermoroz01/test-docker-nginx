@@ -1,17 +1,15 @@
-name: Deploy to ECS
+name: Deploy to ECS on EC2
 
 on:
-  # push:
-  #   branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
   deploy:
-    name: Deploy to ECS
+    name: Build and Deploy to ECS
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
@@ -21,13 +19,29 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-north-1
 
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.11.4
+
+      - name: Terraform Init
+        working-directory: ./ecs
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: ./ecs
+        run: terraform apply -auto-approve
+
       - name: Build Docker image
         run: |
           docker build -t my-app .
 
-      - name: Push to GitHub Container Registry
+      - name: Login to GitHub Container Registry
         run: |
           echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push Docker image to GHCR
+        run: |
           docker tag my-app ghcr.io/${{ github.repository_owner }}/my-app:latest
           docker push ghcr.io/${{ github.repository_owner }}/my-app:latest
 
