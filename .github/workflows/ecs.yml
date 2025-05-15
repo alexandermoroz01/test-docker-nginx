@@ -45,9 +45,10 @@ jobs:
           docker tag my-app ghcr.io/${{ github.repository_owner }}/my-app:latest
           docker push ghcr.io/${{ github.repository_owner }}/my-app:latest
 
-      - name: Update ECS service
+      - name: Force ECS to pull new image
         run: |
           aws ecs update-service \
             --cluster my-ecs-cluster \
             --service web-service \
-            --force-new-deployment
+            --force-new-deployment \
+            --region eu-north-1
