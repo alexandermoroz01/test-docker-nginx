@@ -1,0 +1,13 @@
+[
+  {
+    "name": "web",
+    "image": "nginx",
+    "essential": true,
+    "portMappings": [
+      {
+        "containerPort": 80,
+        "hostPort": 80
+      }
+    ]
+  }
+]
