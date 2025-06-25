@@ -1,9 +1,11 @@
 name: Deploy to EC2 By Name
 
 on:
-  # push:
-  #   branches: [ "main" ]
   workflow_dispatch:
+   inputs:
+      instance_name:
+        description: 'EC2 Instance Name tag'
+        required: true
 
 jobs:
   deploy:
@@ -24,7 +26,7 @@ jobs:
         id: ec2info
         run: |
           PUBLIC_IP=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=test-docker-nginx-terraform" \
+            --filters "Name=tag:Name,Values=${{ github.event.inputs.instance_name }}" \
             --query "Reservations[0].Instances[0].PublicIpAddress" \
             --output text)
 
