@@ -115,15 +115,6 @@ Snapshots are created during the `deploy-ec2-backup.yml` workflow.
 
 ---
 
-## 📌 6. Notes & Future Improvements
-
-- **ECS workflow is in progress** — will be updated
-- Security best practices can be enhanced (e.g., limited IP ranges)
-- Logs and monitoring can be enabled via CloudWatch
-- Add auto-destruction script to clean unused infra after testing
-
----
-
 ## 📫 Author
 
 **Oleksandr Moroz**  
