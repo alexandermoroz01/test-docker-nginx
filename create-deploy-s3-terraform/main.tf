@@ -66,6 +66,6 @@ user_data = file("setup.sh")
   security_groups = [aws_security_group.allow_ssh_http_https.name]
 
   tags = {
-    Name = "test-terraform"
+    Name = "test-docker-nginx-terraform"
   }
 }
